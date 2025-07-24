@@ -7,11 +7,12 @@ on:
 
 jobs:
   build-deploy:
-    name: build and deploy spring boot
+    name: Build, Test, and Push Docker Image
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: Testing
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,7 +23,7 @@ jobs:
           java-version: '21'
           distribution: 'corretto'
         
-      - name: Install Maven (only for local act runs)
+      - name: Install Maven (for local act only)
         run: |
           sudo apt-get update
           sudo apt-get install -y maven
@@ -34,3 +35,12 @@ jobs:
         run: |
           mvn clean
           mvn -B package --file pom.xml
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t kamhassan/spring-boot-docker:v1.0 .
+
+      - name: Push Docker image
+        run: docker push kamhassan/spring-boot-docker:v1.0

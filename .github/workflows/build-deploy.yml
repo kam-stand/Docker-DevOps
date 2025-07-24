@@ -41,7 +41,7 @@ jobs:
       - name: Build and Push Docker Image
         env:
           DOCKER_REPO: kamhassan/docker-devops
-          BASE_TAG: v1-data-shakey
+          BASE_TAG: v1-springboot
         run: |
           SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
           IMAGE_TAG="${BASE_TAG}-${SHORT_SHA}"

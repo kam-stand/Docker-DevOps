@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  spring-boot:
+    image: spring-boot-monster
+    build: .
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - spring-boot-monster-net
+    environment:
+      - spring.datasource.url=jdbc:mysql://mysqldb:3306/monsterdb?allowPublicKeyRetrieval=true&useSSL=false
+      - spring.datasource.username=root
+      - spring.datasource.password=Kamrul14!
+    depends_on:
+      - mysqldb
+    volumes:
+      - .m2:/root/.m2
+
+  mysqldb:
+    image: "mysql:8.0"
+    restart: always
+    ports:
+      - "3307:3306"
+    networks:
+      - spring-boot-monster-net
+    environment:
+      - MYSQL_DATABASE=monsterdb
+      - MYSQL_ROOT_PASSWORD=Kamrul14!
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  spring-boot-monster-net:

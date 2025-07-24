@@ -16,31 +16,40 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-    
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'corretto'
-        
-      - name: Install Maven (for local act only)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y maven
-        
-      - name: Unit tests
-        run: mvn -B test --file pom.xml
-        
-      - name: Build the app
-        run: |
-          mvn clean
-          mvn -B package --file pom.xml
 
-      - name: Login to Docker Hub
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Test App
+        run: |
+          mvn clean package -B
+
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build Docker image
-        run: docker build -t kamhassan/spring-boot-docker:v1.0 .
+      - name: Build and Push Docker Image
+        env:
+          DOCKER_REPO: kamhassan/docker-devops
+          BASE_TAG: v1-data-shakey
+        run: |
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          IMAGE_TAG="${BASE_TAG}-${SHORT_SHA}"
 
-      - name: Push Docker image
-        run: docker push kamhassan/spring-boot-docker:v1.0
+          echo "Building Docker image with tag: $DOCKER_REPO:$IMAGE_TAG"
+          docker build -t $DOCKER_REPO:$IMAGE_TAG .
+
+          echo "Pushing image to Docker Hub..."
+          docker push $DOCKER_REPO:$IMAGE_TAG
+
+          echo "::notice::Docker image pushed: $DOCKER_REPO:$IMAGE_TAG"

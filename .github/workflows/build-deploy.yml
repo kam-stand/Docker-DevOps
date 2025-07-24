@@ -1,0 +1,23 @@
+name: build-deploy Docker-Devops
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    name: build and deploy spring boot
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: Testing
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+      - name: unit tests
+        run: mvn -B test --file pom.xml
+      - name: build the app
+        run: |
+          mvn clean
+          mvn -B package --file pom.xml

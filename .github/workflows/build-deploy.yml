@@ -1,4 +1,4 @@
-name: build-deploy Docker-Devops
+name: test and build Docker-Devops
 
 on:
   push:
@@ -15,6 +15,11 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v3
+      - name: setup jdk 17
+        uses: actions/setup-java@v3
+        with:
+            distribution: 'corretto'
+            java-version: 17
       - name: unit tests
         run: mvn -B test --file pom.xml
       - name: build the app
